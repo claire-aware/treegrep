@@ -1,0 +1,56 @@
+Projects
+    treegrep
+        [ ] add --leaves flag
+        [ ] add --parents flag
+        [x] fix old rust patterns
+        [x] modernize edition
+        [ ] directory tree mode
+    website
+        [ ] update landing page
+        [x] fix broken links
+        [ ] add dark mode
+        [ ] mobile layout
+            [ ] nav menu
+            [ ] hero section
+
+Books to Read
+    Fiction
+        Dune
+        Neuromancer
+        The Left Hand of Darkness
+    Non-Fiction
+        The Pragmatic Programmer
+        Structure and Interpretation of Computer Programs
+        A Philosophy of Software Design
+
+Recipe Ideas
+    Breakfast
+        avocado toast
+            sourdough
+            everything bagel seasoning
+        shakshuka
+            spicy version
+            mild version
+    Dinner
+        pasta
+            carbonara
+            cacio e pepe
+        tacos
+            fish tacos
+            al pastor
+
+Travel
+    Europe
+        Portugal
+            Lisbon
+            Porto
+        Italy
+            Rome
+            Florence
+    Asia
+        Japan
+            Tokyo
+            Kyoto
+        Vietnam
+            Hanoi
+            Hoi An

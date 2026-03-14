@@ -2,27 +2,33 @@
 
 Grep utility for outlines, trees, and when indentation matters.
 
-Useful for working with TODO lists when you need the full context of a match.
+Useful for working with TODO lists or any indented file format where you need the full context (ancestors) of a match.
 
-## Compiling
+## Install
 
-You first need rust-pcre.  Then compile with:
+Requires [Rust](https://rustup.rs). Then:
+
+```sh
+cargo install --path .
 ```
-rustc treegrep.rs -L /path/to/rust-pcre
+
+Or just build:
+
+```sh
+cargo build --release
 ```
 
 ## Usage
 
-Usage is similar to grep.
-It works with one or more files, including piping from stdin.
+Usage is similar to grep. Works with one or more files, or piped from stdin.
 
 ```
-treegrep [OPTION]... PATTERN [FILE]...
+treegrep PATTERN [FILE]...
 ```
 
-Example:
+### Example
 
-```
+```sh
 treegrep "\[>\]" ~/.tasks
 ```
 
@@ -34,32 +40,30 @@ Output:
         [>] current task here!
 ```
 
-## Ideas
-
-There are no options yet but I have a few ideas listed in comments (tab size, leaves only, etc.)
-
-The cli program *tree* outputs directory trees, but it doesn't work with treegrep since
-the indentation style is different.  It would be cool to see treegrep take a directory tree instead of
-files as input (maybe -d?).  Or alternatively, the ability to treat certain characters as whitespace so
-you could just do tree | treegrep "blah"
-
-Pull requests and other ideas are welcome. :)
-
-## Contributers
-
-You may add your name here if you add/fix something, etc.
+When multiple files are given, matches are prefixed with the filename and line number:
 
 ```
-Grady O'Connell <github.com/flipcoder>
+tasks.txt(3): [>] current task here!
 ```
 
-Thanks to #rust and /r/rust for helping with bugs and giving tips!
+## Ideas / Roadmap
+
+- Configurable tab width (currently hardcoded to 4)
+- `--leaves` / `--parents` flags to control what gets printed
+- Directory tree mode (`-d`) — treat a directory as input rather than files
+- Pipe support from `tree` output (treating tree's branch characters as whitespace)
+
+Pull requests and ideas welcome.
+
+## Contributors
+
+- Grady O'Connell ([@flipcoder](https://github.com/flipcoder))
+
+Thanks to #rust and /r/rust for help with bugs and tips!
 
 ## License
 
-The MIT License (MIT)
-
-Copyright (c) 2013 Grady O'Connell
+MIT License — Copyright (c) 2013 Grady O'Connell
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -78,4 +82,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-

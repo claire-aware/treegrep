@@ -7,7 +7,13 @@ fn main() {
     let tabwidth = 4;
 
     let args: Vec<String> = env::args().collect();
-    if args.len() <= 1 {
+    if args.len() <= 1
+        || args.iter().any(|e| {
+            [String::from("-h"), String::from("--help")]
+                .iter()
+                .any(|a| e == a)
+        })
+    {
         eprintln!("Usage: {} [OPTION]... PATTERN [FILE]...", args[0]);
         std::process::exit(1);
     }
@@ -29,7 +35,11 @@ fn main() {
             eprintln!("Error opening {}: {}", file, e);
             std::process::exit(1);
         });
-        let filename = if multiple { path.to_str().unwrap_or(file) } else { "" };
+        let filename = if multiple {
+            path.to_str().unwrap_or(file)
+        } else {
+            ""
+        };
         treegrep::grep(pattern, filename, BufReader::new(f), tabwidth);
     }
 }

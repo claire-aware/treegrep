@@ -1,5 +1,5 @@
-use std::io::BufRead;
 use regex::Regex;
+use std::io::BufRead;
 
 fn indent_level(line: &str, tabwidth: usize) -> usize {
     let mut indent = 0;
@@ -15,13 +15,13 @@ fn indent_level(line: &str, tabwidth: usize) -> usize {
     indent
 }
 
-pub fn grep<R: BufRead>(pattern: &str, filename: &str, reader: R, tabwidth: usize) {
+pub fn grep<R: BufRead>(pattern: &Vec<String>, filename: &str, reader: R, tabwidth: usize) {
     let mut queue: Vec<(usize, String)> = Vec::new();
     let mut tabs = vec![0usize];
     let mut line_no = 0;
     let mut last_indent = 0;
 
-    let re = Regex::new(pattern).unwrap();
+    let regexes = Vec::from_iter(pattern.iter().map(|pattern| Regex::new(pattern).unwrap()));
 
     for line in reader.lines() {
         let line = line.unwrap();
@@ -45,15 +45,17 @@ pub fn grep<R: BufRead>(pattern: &str, filename: &str, reader: R, tabwidth: usiz
             queue.push((line_no, line.clone()));
         }
 
-        if re.is_match(&line) {
-            for (line_no, line) in &queue {
-                if filename.is_empty() {
-                    println!("{}", line);
-                } else {
-                    println!("{}({}): {}", filename, line_no, line);
+        for regex in &regexes {
+            if regex.is_match(&line) {
+                for (line_no, line) in &queue {
+                    if filename.is_empty() {
+                        println!("{}", line);
+                    } else {
+                        println!("{}({}): {}", filename, line_no, line);
+                    }
                 }
+                queue.clear();
             }
-            queue.clear();
         }
 
         last_indent = cur_indent;

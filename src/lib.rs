@@ -16,7 +16,16 @@ fn indent_level(line: &str, tabwidth: usize) -> usize {
     indent
 }
 
+fn print_line(filename: &str, line_no: &usize, line: &String) {
+    if filename.is_empty() {
+        println!("{}", line);
+    } else {
+        println!("{}({}): {}", filename, line_no, line);
+    }
+}
+
 fn handle_indent(
+    filename: &str,
     tab_width: usize,
     max_siblings: usize,
     queues: &mut Vec<(
@@ -28,11 +37,12 @@ fn handle_indent(
     )>,
     line_no: usize,
     last_indent: &mut usize,
+    last_matched_indent: &mut usize,
     siblings_to_see: &mut usize,
     aunt_regexes: &Vec<Regex>,
     line: &String,
 ) {
-    let cur_indent = indent_level(line, tab_width);
+    let cur_indent = indent_level(&line, tab_width);
     let mut diff = cur_indent as isize - *last_indent as isize;
     if diff != 0 {
         *siblings_to_see = 0
@@ -47,9 +57,14 @@ fn handle_indent(
         ));
     } else {
         while diff < 0 && queues.len() > 0 {
-            let (_last_line_no, _last_line, tab_count, _siblings, _matched_aunts) =
+            let (_last_line_no, _last_line, tab_count, _siblings, matched_aunts) =
                 queues.pop().unwrap();
             diff += tab_count as isize;
+            if *last_matched_indent >= cur_indent {
+                for (line_no, line) in matched_aunts {
+                    print_line(filename, &line_no, &line);
+                }
+            }
         }
         let (last_line_no, last_line, tab_count, mut siblings, mut matched_aunts) =
             queues.pop().unwrap_or_else(|| {
@@ -70,7 +85,8 @@ fn handle_indent(
                 matched_aunts.push((last_line_no, last_line));
             }
         }
-        queues.push((line_no, line.clone(), tab_count, siblings, matched_aunts))
+        queues.push((line_no, line.clone(), tab_count, siblings, matched_aunts));
+        *last_matched_indent = cur_indent;
     }
     *last_indent = cur_indent;
 }
@@ -96,41 +112,21 @@ fn print_matches(
             let (line_no, line, _tab_count, _siblings, matched_aunts) = iter.next().unwrap();
 
             for (line_no, line) in matched_aunts {
-                if filename.is_empty() {
-                    println!("{}", line);
-                } else {
-                    println!("{}({}): {}", filename, line_no, line);
-                }
+                print_line(filename, line_no, line);
             }
 
-            if filename.is_empty() {
-                println!("{}", line);
-            } else {
-                println!("{}({}): {}", filename, line_no, line);
-            }
+            print_line(filename, line_no, line);
         }
         let (line_no, line, _tab_count, siblings, _matched_aunts) = iter.next().unwrap();
         for (line_no, line) in siblings {
-            if filename.is_empty() {
-                println!("{}", line);
-            } else {
-                println!("{}({}): {}", filename, line_no, line);
-            }
+            print_line(filename, line_no, line);
         }
-        if filename.is_empty() {
-            println!("{}", line);
-        } else {
-            println!("{}({}): {}", filename, line_no, line);
-        }
+        print_line(filename, line_no, line);
         queues.clear();
         *siblings_to_see = max_siblings;
     } else if *siblings_to_see > 0 {
         *siblings_to_see -= 1;
-        if filename.is_empty() {
-            println!("{}", line);
-        } else {
-            println!("{}({}): {}", filename, line_no, line);
-        }
+        print_line(filename, &line_no, &line);
     }
 }
 
@@ -151,6 +147,7 @@ pub fn grep<R: BufRead>(
     )> = Vec::new(); // Line number, line, tab count, has matched children/siblings, siblings, matched aunts
     let mut line_no = 0;
     let mut last_indent = 0;
+    let mut last_matched_indent = 0;
     let mut siblings_to_see = 0;
 
     let match_regexes = Vec::from_iter(patterns.iter().map(|pattern| Regex::new(pattern).unwrap()));
@@ -162,11 +159,13 @@ pub fn grep<R: BufRead>(
         line_no += 1;
 
         handle_indent(
+            filename,
             tab_width,
             max_siblings,
             &mut queues,
             line_no,
             &mut last_indent,
+            &mut last_matched_indent,
             &mut siblings_to_see,
             &aunt_regexes,
             &line,

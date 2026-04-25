@@ -6,11 +6,13 @@ use std::path::Path;
 
 fn show_help() {
     eprintln!(
-        "Usage: {} [OPTIONS]... PATTERN [FILES]..., {} [OPTIONS INCLUDING -p]... [FILES]...
+        "Usage: {} [OPTIONS]... PATTERN [FILES]..., {} [OPTIONS INCLUDING -m]... [FILES]...
 Options:
     -h, --help: Display this message
-    -p [PATTERN], --pattern [PATTERN]: Add pattern to match
-    -t [NUMBER], --tab-width [NUMBER]: Set tab width for tree structure. Defaults to 4",
+    -m PATTERN, --match PATTERN: Add pattern to match
+    -t NUMBER, --tab-width NUMBER: Set tab width for tree structure. Defaults to 4
+    -a PATTERN, --aunt PATTERN: Match pattern when sibling of parent of a regular match
+    -s NUMBER, --siblings NUMBER: Show n siblings before and after match",
         env::args().next().expect(""),
         env::args().next().expect("")
     );
@@ -19,14 +21,18 @@ Options:
 
 fn main() {
     let mut tab_width = 4;
+    let mut siblings = 0;
     let mut patterns: Vec<String> = Vec::new();
+    let mut aunts: Vec<String> = Vec::new();
     let mut files: Vec<String> = Vec::new();
 
-    if env::args().len() <= 2 { //Progam name and file/pattern with no partner
+    if env::args().len() <= 2 {
+        //Progam name and file/pattern with no partner
         show_help();
     }
     let mut last_flag: String = String::from("");
-    for arg in env::args().skip(1) { //Skip program name
+    for arg in env::args().skip(1) {
+        //Skip program name
         if arg.starts_with("-") {
             match arg.as_str() {
                 "-h" | "--help" => show_help(),
@@ -37,8 +43,14 @@ fn main() {
                 "-t" | "--tab_width" => {
                     tab_width = arg.parse().unwrap();
                 }
-                "-p" | "--pattern" => {
+                "-m" | "--match" => {
                     patterns.push(arg);
+                }
+                "-a" | "--aunt" => {
+                    aunts.push(arg);
+                }
+                "-s" | "--siblings" => {
+                    siblings = arg.parse().unwrap();
                 }
                 "" => {
                     if patterns.len() <= 0 || (files.len() <= 0 && !exists(&arg).unwrap()) {
@@ -49,12 +61,13 @@ fn main() {
                 }
                 _ => show_help(),
             }
+            last_flag = String::from("");
         }
     }
 
     if files.len() <= 0 {
         let stdin = io::stdin();
-        treegrep::grep(&patterns, "", stdin.lock(), tab_width);
+        treegrep::grep(&patterns, &aunts, "", stdin.lock(), tab_width, siblings);
         return;
     }
 
@@ -71,6 +84,13 @@ fn main() {
         } else {
             ""
         };
-        treegrep::grep(&patterns, filename, BufReader::new(f), tab_width);
+        treegrep::grep(
+            &patterns,
+            &aunts,
+            filename,
+            BufReader::new(f),
+            tab_width,
+            siblings,
+        );
     }
 }
